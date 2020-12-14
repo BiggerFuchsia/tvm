@@ -1,0 +1,32 @@
+
+config("tvm_config") {
+  cflags = [ "-Wno-missing-field-initializers" ]
+  cflags += [ "-Wno-conversion" ]
+
+  include_dirs = [
+    "./include",
+    "./3rdparty/dlpack/include",
+    "./3rdparty/dmlc-core/include",
+  ]
+
+  defines = [
+    "DMLC_LOG_STACK_TRACE=0",
+    "DMLC_CMAKE_LITTLE_ENDIAN",
+  ]
+}
+
+shared_library("tvm") {
+  output_name = "tvm_runtime"
+
+  sources = [
+    "apps/howto_deploy/tvm_runtime_pack.cc",
+  ]
+
+  configs += [ "//build/config:no_rtti" ]
+  configs -= [ "//build/config:no_rtti" ]
+  configs += [ "//build/config:no_exceptions" ]
+  configs -= [ "//build/config:no_exceptions" ]
+
+  configs += [ ":tvm_config" ]
+}
+
