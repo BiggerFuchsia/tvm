@@ -72,10 +72,12 @@ void Verify(tvm::runtime::Module mod, std::string fname) {
 }
 
 void DeploySingleOp() {
+#ifndef TVM_FUCHSIA
   // Normally we can directly
   tvm::runtime::Module mod_dylib = tvm::runtime::Module::LoadFromFile("lib/test_addone_dll.so");
   LOG(INFO) << "Verify dynamic loading from test_addone_dll.so";
   Verify(mod_dylib, "addone");
+#endif
   // For libraries that are directly packed as system lib and linked together with the app
   // We can directly use GetSystemLib to get the system wide library.
   LOG(INFO) << "Verify load function from system lib";
@@ -119,6 +121,8 @@ void DeployGraphRuntime() {
 
 int main(void) {
   DeploySingleOp();
+#ifndef TVM_FUCHSIA
   DeployGraphRuntime();
+#endif
   return 0;
 }

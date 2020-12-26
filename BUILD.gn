@@ -1,5 +1,7 @@
+import("//build/package.gni")
+import("//src/sys/build/components.gni")
 
-config("tvm_config") {
+config("config") {
   cflags = [ "-Wno-missing-field-initializers" ]
   cflags += [ "-Wno-conversion" ]
 
@@ -12,10 +14,19 @@ config("tvm_config") {
   defines = [
     "DMLC_LOG_STACK_TRACE=0",
     "DMLC_CMAKE_LITTLE_ENDIAN",
+    "TVM_FUCHSIA",
   ]
 }
 
-shared_library("tvm") {
+group("tvm") {
+  deps = [
+    ":runtime_lib",
+    ":bin",
+    ":tvm-example",
+  ]
+}
+
+shared_library("runtime_lib") {
   output_name = "tvm_runtime"
 
   sources = [
@@ -27,6 +38,37 @@ shared_library("tvm") {
   configs += [ "//build/config:no_exceptions" ]
   configs -= [ "//build/config:no_exceptions" ]
 
-  configs += [ ":tvm_config" ]
+  configs += [ ":config" ]
 }
 
+executable("bin") {
+  output_name = "tvm_cpp_deploy"
+
+  sources = [
+    "apps/howto_deploy/cpp_deploy.cc",
+    "apps/howto_deploy/lib/test_addone_sys.o",
+  ]
+
+  deps = [
+    ":runtime_lib",
+  ]
+
+  configs += [ "//build/config:no_rtti" ]
+  configs -= [ "//build/config:no_rtti" ]
+  configs += [ "//build/config:no_exceptions" ]
+  configs -= [ "//build/config:no_exceptions" ]
+
+  configs += [ ":config" ]
+}
+
+fuchsia_component("cpp-deploy") {
+  deps = [ ":bin" ]
+  manifest = "meta/cpp-deploy.cml"
+}
+
+fuchsia_package("tvm-example") {
+  deps = [
+    ":cpp-deploy",
+    "//src/sys/component_manager:component-manager-for-examples-cmp",
+  ]
+}
